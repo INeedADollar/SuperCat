@@ -34,26 +34,24 @@ public class MainMenu extends Display {
 		setBorder(BorderFactory.createEmptyBorder(40, 100, 50, 100));
 		
 		GridBagConstraints gbc = new GridBagConstraints();
-		gbc.gridwidth = GridBagConstraints.REMAINDER;
-		gbc.insets = new Insets(20, 0, 0, 0);
+		gbc.gridx = 0;
+		gbc.gridy = 0;
+		gbc.insets = new Insets(20, 0, 100, 0);
 		
 		JLabel title = new JLabel("SuperCat");
-		title.setAlignmentX(CENTER_ALIGNMENT);
+		title.setAlignmentY(TOP_ALIGNMENT);
 		title.setOpaque(false);
 		title.setForeground(new Color(163, 38, 61));
 		title.setFont(new Font("SansSerif", Font.ITALIC | Font.BOLD, 100));
 		add(title, gbc);
 		
-		add(Box.createRigidArea(new Dimension(0, 130)), gbc);
-		
 		CatButton playButton = new CatButton("Play");
-		playButton.setAlignmentX(CENTER_ALIGNMENT);
+		playButton.setAlignmentY(CENTER_ALIGNMENT);
 		playButton.setBorderSize(3);
 		playButton.setBorderColor(new Color(163, 38, 61));
 		playButton.setBorderColorOnHover(new Color(163, 38, 61));
 		playButton.setTextColor(new Color(163, 38, 61));
 		playButton.setTextColorOnHover(new Color(163, 38, 61));
-		playButton.resize(new Dimension(300, 120));
 		playButton.setFont(new Font("Arial", Font.PLAIN, 30));
 		playButton.addActionListener( new ActionListener() {
             public void actionPerformed(ActionEvent e) { 
@@ -78,16 +76,19 @@ public class MainMenu extends Display {
             	loginDisplay.showDisplay();
             }
         });
+
+		gbc.gridx = 0;
+		gbc.gridy = 1;
+		gbc.insets = new Insets(15, 0, 15, 0);
 		add(playButton, gbc);
-		
+
 		CatButton leaderboardButton = new CatButton("Leaderboard");
-		leaderboardButton.setAlignmentX(CENTER_ALIGNMENT);
+		leaderboardButton.setAlignmentY(CENTER_ALIGNMENT);
 		leaderboardButton.setBorderSize(3);
 		leaderboardButton.setBorderColor(new Color(163, 38, 61));
 		leaderboardButton.setBorderColorOnHover(new Color(163, 38, 61));
 		leaderboardButton.setTextColor(new Color(163, 38, 61));
 		leaderboardButton.setTextColorOnHover(new Color(163, 38, 61));
-		leaderboardButton.resize(new Dimension(300, 120));
 		leaderboardButton.setFont(new Font("Arial", Font.PLAIN, 30));
 		leaderboardButton.addActionListener( new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -112,16 +113,17 @@ public class MainMenu extends Display {
             	leaderboardDisplay.showDisplay();
             }
         });
+		gbc.gridx = 0;
+		gbc.gridy = 2;
 		add(leaderboardButton, gbc);
 		
 		CatButton exitButton = new CatButton("Exit");
-		exitButton.setAlignmentX(CENTER_ALIGNMENT);
+		exitButton.setAlignmentY(CENTER_ALIGNMENT);
 		exitButton.setBorderSize(3);
 		exitButton.setBorderColor(new Color(163, 38, 61));
 		exitButton.setBorderColorOnHover(new Color(163, 38, 61));
 		exitButton.setTextColor(new Color(163, 38, 61));
 		exitButton.setTextColorOnHover(new Color(163, 38, 61));
-		exitButton.resize(new Dimension(300, 120));
 		exitButton.setFont(new Font("Arial", Font.PLAIN, 30));
 		exitButton.addActionListener( new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -146,6 +148,8 @@ public class MainMenu extends Display {
             	parent.dispose();
             }
         });
+		gbc.gridx = 0;
+		gbc.gridy = 3;
 		add(exitButton, gbc);
 	}
 }

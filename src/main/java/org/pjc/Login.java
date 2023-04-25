@@ -33,6 +33,7 @@ import java.util.TimerTask;
 import javax.imageio.ImageIO;
 
 public class Login extends Display {
+	JLabel catLabel;
 
 	public Login(JFrame parent) {
 		super(parent, "assets/background.png");
@@ -53,7 +54,7 @@ public class Login extends Display {
 		if(catImage == null) 
 			throw new RuntimeException("Cat model could not be loaded.");
 		
-		JLabel catLabel = new JLabel(catImage);
+		catLabel = new JLabel(catImage);
 		catLabel.setOpaque(false);;
 		catPreview.add(catLabel, BorderLayout.CENTER);
 		firstHalf.add(catPreview);
@@ -69,7 +70,7 @@ public class Login extends Display {
 		
 		JPanel login = createLoginMenu();
 		login.setBorder(BorderFactory.createEmptyBorder(30, 30, 10, 30));
-		login.setOpaque(false);;
+		login.setOpaque(false);
 		
 		add(login);
 		setBackground(Color.black);
@@ -100,6 +101,7 @@ public class Login extends Display {
 		usernameField.setPlaceholder("Username");
 		usernameField.setFont(new Font("SansSerif", Font.PLAIN, 30));
 		usernameField.setBorder(BorderFactory.createLineBorder(new Color(163, 38, 61), 3));
+		usernameField.setMaximumSize(new Dimension(100000, 30));
 		usernameField.addKeyListener(new KeyListener() {
 		    public void keyTyped(KeyEvent e) { 
 		        if (usernameField.getText().length() >= 30 )
@@ -122,9 +124,10 @@ public class Login extends Display {
 		usernameField.setForeground(disabledTextColor);
 		
 		loginMenu.add(usernameField);
-		loginMenu.add(Box.createRigidArea(new Dimension(0, 500)));
+		loginMenu.add(Box.createRigidArea(new Dimension(0, 100)));
 		
 		JPanel buttons = new JPanel();
+		buttons.setBackground(new Color(255, 0, 0));
 		buttons.setOpaque(false);
 		buttons.add(Box.createRigidArea(new Dimension(5, 0)));
 		
@@ -134,7 +137,7 @@ public class Login extends Display {
 		playButton.setBorderColor(new Color(163, 38, 61));
 		playButton.setTextColor(new Color(163, 38, 61));
 		playButton.setBorderColorOnHover(Color.black);
-		playButton.resize(new Dimension(100, 50));
+		playButton.setPreferredSize(new Dimension(100, 50));
 		playButton.setFont(new Font("Arial", Font.PLAIN, 20));
 		playButton.addActionListener( new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -159,8 +162,8 @@ public class Login extends Display {
             	gameDisplay.showDisplay();
             }
         });
+
 		buttons.add(playButton);
-		
 		buttons.add(Box.createRigidArea(new Dimension(10, 0)));
 		
 		CatButton backButton = new CatButton("Back");
@@ -169,34 +172,32 @@ public class Login extends Display {
 		backButton.setBorderColor(new Color(163, 38, 61));
 		backButton.setTextColor(new Color(163, 38, 61));
 		backButton.setBorderColorOnHover(Color.black);
-		backButton.resize(new Dimension(100, 50));
+		backButton.setPreferredSize(new Dimension(100, 50));
 		backButton.setFont(new Font("Arial", Font.PLAIN, 20));
-		backButton.addActionListener( new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-            	TimerTask task = new TimerTask() {
-    				@Override
-    				public void run() {
-    					try {
-    						FileInputStream fis = new FileInputStream("sounds/cat.mp3");
-    						AdvancedPlayer player = new AdvancedPlayer(fis);
-    						player.play();
-    						
-    					} catch (FileNotFoundException | JavaLayerException e1) {
-    						System.out.println(e1);
-    						e1.printStackTrace();
-    					}
-    				}
-    			};
-            	
-    			(new Timer()).schedule(task, 0);
-    			
-            	MainMenu mainMenuDisplay = new MainMenu(parent);
-            	mainMenuDisplay.showDisplay();
-            }
-        });
+		backButton.addActionListener(e -> {
+			TimerTask task = new TimerTask() {
+				@Override
+				public void run() {
+					try {
+						FileInputStream fis = new FileInputStream("sounds/cat.mp3");
+						AdvancedPlayer player = new AdvancedPlayer(fis);
+						player.play();
+
+					} catch (FileNotFoundException | JavaLayerException e1) {
+						System.out.println(e1);
+						e1.printStackTrace();
+					}
+				}
+			};
+
+			(new Timer()).schedule(task, 0);
+
+			MainMenu mainMenuDisplay = new MainMenu(parent);
+			mainMenuDisplay.showDisplay();
+		});
 		buttons.add(backButton);
 		
-		loginMenu.add(buttons);		
+		loginMenu.add(buttons, BorderLayout.SOUTH);
 		
 		return loginMenu;
 	}

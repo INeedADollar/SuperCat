@@ -122,7 +122,7 @@ public class Leaderboard extends Display {
 		
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());
 		Dimension dim = leaderboard.getPreferredScrollableViewportSize();
-        dim.height = 400;
+        dim.height = 200;
         leaderboard.setPreferredScrollableViewportSize(dim);
         leaderboard.setMinimumSize(dim);
 
@@ -149,7 +149,7 @@ public class Leaderboard extends Display {
 		backButton.setBorderColor(new Color(163, 38, 61));
 		backButton.setTextColor(new Color(163, 38, 61));
 		backButton.setBorderColorOnHover(Color.black);
-		backButton.resize(new Dimension(100, 50));
+		backButton.setPreferredSize(new Dimension(100, 50));
 		backButton.setFont(new Font("Arial", Font.PLAIN, 20));
 		backButton.addActionListener( new ActionListener() {
             public void actionPerformed(ActionEvent e) {

@@ -25,11 +25,12 @@ public class MainWindow extends JFrame {
 		setIconImage(icon);
 		setTitle("SuperCat");
 		
-		Leaderboard l = new Leaderboard(this);
-		l.showDisplay();
+//		Leaderboard l = new Leaderboard(this);
+//		l.showDisplay();
 		
 		//(new Login(this)).showDisplay();
-		(new MainMenu(this)).showDisplay();
+		//(new MainMenu(this)).showDisplay();
+		(new Leaderboard(this)).showDisplay();
 		//(new Game("", new BufferedImage(1, 1, 1), this)).showDisplay();
 		
 	}

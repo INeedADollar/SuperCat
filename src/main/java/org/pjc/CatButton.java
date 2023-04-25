@@ -16,10 +16,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.Cursor;
 
 public class CatButton extends JButton {
-
-	private Shape buttonShape = createButtonShape(false);
-	private Dimension buttonDimension = new Dimension(0, 0);
-	
 	private Color borderColor = Color.black;
 	private Color backgroundColor = Color.black;
 	private Color textColor = Color.black;
@@ -42,13 +38,6 @@ public class CatButton extends JButton {
 	public CatButton() {
 		super();
 		addEventListeners();
-	}
-	
-	public void resize(Dimension d) {
-		this.buttonDimension = d;
-		this.buttonShape = createButtonShape(false);
-		
-		repaint();
 	}
 	
 	public void setBorderSize(int s) {
@@ -103,7 +92,8 @@ public class CatButton extends JButton {
 			g2d.setPaint(borderColorOnHover);
 		else
 			g2d.setPaint(borderColor);
-		
+
+		Shape buttonShape = createButtonShape(false);
         g2d.draw(buttonShape);
     }
 	
@@ -142,23 +132,18 @@ public class CatButton extends JButton {
     }
     
 	@Override
-    public Dimension getPreferredSize() {
-		Dimension d = (buttonDimension == null || (buttonDimension.getWidth() == 0 && buttonDimension.getHeight() == 0)
-				? super.getPreferredSize() : buttonDimension);
-
-	    return d;
-    }
-    
-	@Override
     public boolean contains(int x, int y) {
-        return buttonShape.contains(x, y);
+        return createButtonShape(true).contains(x, y);
     }
 
     private Shape createButtonShape(boolean isBackground) {
         Polygon p = new Polygon();
         
         Dimension d = getPreferredSize();
-
+		System.out.println(d.height);
+		System.out.println(d.width);
+		System.out.println(getText());
+		System.out.println();
         if(isBackground) {
 	        p.addPoint(borderSize - 1, borderSize - 1);
 	        p.addPoint(borderSize - 1, d.height - borderSize);

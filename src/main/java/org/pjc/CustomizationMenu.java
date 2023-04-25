@@ -134,7 +134,7 @@ public class CustomizationMenu extends JTabbedPane {
 		CatButton tabButton = new CatButton(tabs[index]);
 		tabButton.setTextColor(new Color(163, 38, 61));
 		tabButton.setTextColorOnHover(new Color(163, 38, 61));
-		tabButton.resize(new Dimension(70, 35));
+		tabButton.setPreferredSize(new Dimension(70, 35));
 		tabButton.setFont(new Font("Arial", Font.PLAIN, 14));
 		tabButton.addActionListener( new ActionListener() {
             public void actionPerformed(ActionEvent e) {
