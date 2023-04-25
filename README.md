@@ -1,2 +1,2 @@
-# SuperCat-Server
-Repository for SuperCat's game server.
+# SuperCat
+Repository for SuperCat game
