@@ -1,37 +1,39 @@
-package org.pjc;
+package org.pjc.widgets;
+
+import org.pjc.event_handlers.SkinChangeEventHandler;
 
 import javax.imageio.ImageIO;
-import javax.swing.BorderFactory;
-import javax.swing.ButtonGroup;
-import javax.swing.ButtonModel;
-import javax.swing.ImageIcon;
-import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
-import javax.swing.JToggleButton;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
+import javax.swing.*;
 import javax.swing.plaf.basic.BasicTabbedPaneUI;
 
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.GridLayout;
-import java.awt.Insets;
-import java.awt.Rectangle;
-import java.awt.event.ActionListener;
+import java.awt.*;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.awt.event.ActionEvent;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class CustomizationMenu extends JTabbedPane {
 	
 	private CatButton selectedTab = null;
+	private SkinChangeEventHandler eventHandler;
+	private Map<String, List<Icon>> icons = new HashMap<>();
+
 	private String tabs[] = {"Cats", "Head", "Clothing", "Paw"};
 	
-	public CustomizationMenu() {
+	public CustomizationMenu(SkinChangeEventHandler eventHandler) {
 		super();
+
+		this.eventHandler = eventHandler;
+
+		for(int i = 0; i < 4; i++) {
+			icons.put(tabs[i], new ArrayList<>());
+		}
+
 		createCustomizationMenu();
 	}
 	
@@ -54,20 +56,18 @@ public class CustomizationMenu extends JTabbedPane {
                 return new Insets(0, 0, 0, 0);
             }
         });
-		addChangeListener(new ChangeListener() {
-	        public void stateChanged(ChangeEvent e) {
-	        	if(selectedTab != null) {
-	        		selectedTab.setBorderColor(Color.black);
-		            selectedTab.setBorderColorOnHover(Color.black);
-	        	}
-	        	
-	            selectedTab = (CatButton)getTabComponentAt(getSelectedIndex());
-	            if(selectedTab != null) {
-		            selectedTab.setBorderColor(new Color(163, 38, 61));
-		            selectedTab.setBorderColorOnHover(new Color(163, 38, 61));
-	            }
-	        }
-	    });
+		addChangeListener(e -> {
+			if(selectedTab != null) {
+				selectedTab.setBorderColor(Color.black);
+				selectedTab.setBorderColorOnHover(Color.black);
+			}
+
+			selectedTab = (CatButton)getTabComponentAt(getSelectedIndex());
+			if(selectedTab != null) {
+				selectedTab.setBorderColor(new Color(163, 38, 61));
+				selectedTab.setBorderColorOnHover(new Color(163, 38, 61));
+			}
+		});
 		
 		for(int i = 0; i < 4; i++)
 			addTab(i);
@@ -103,26 +103,60 @@ public class CustomizationMenu extends JTabbedPane {
 		for(int i = 0; i < 30; i++) {
 			JToggleButton item;
 			if(fileIndex < files.length) {
-				ImageIcon icon = loadImageIcon(directory.listFiles()[fileIndex].getPath());
-				item = new JToggleButton(icon);
+				BufferedImage icon = loadIcon(directory.listFiles()[fileIndex].getPath());
+				ImageIcon smallScaledIcon = new ImageIcon(icon.getScaledInstance(50, 50, BufferedImage.SCALE_SMOOTH));
+				ImageIcon scaledIcon = new ImageIcon(icon.getScaledInstance(200, 200, BufferedImage.SCALE_SMOOTH));
+
+				List<Icon> tabIcons = icons.get(tabs[index]);
+				tabIcons.add(scaledIcon);
+
+				item = new JToggleButton(smallScaledIcon);
+				item.setFocusPainted(false);
 				fileIndex++;
+
+				int finalI = i;
+				item.getModel().addChangeListener(e -> {
+					ButtonModel model = (ButtonModel) e.getSource();
+					if (model.isSelected())
+						item.setBorder(BorderFactory.createLineBorder(new Color(163, 38, 61), 3));
+					else
+						item.setBorder(BorderFactory.createLineBorder(new Color(122, 138, 153), 1));
+
+					eventHandler.handleEvent(selectedTab.getText(), icons.get(selectedTab.getText()).get(finalI));
+				});
 			}
 			else {
 				item = new JToggleButton();
+				item.addMouseListener(new MouseListener() {
+					@Override
+					public void mouseClicked(MouseEvent e) {
+						e.consume();
+					}
+
+					@Override
+					public void mousePressed(MouseEvent e) {
+						e.consume();
+					}
+
+					@Override
+					public void mouseReleased(MouseEvent e) {
+						e.consume();
+					}
+
+					@Override
+					public void mouseEntered(MouseEvent e) {
+						e.consume();
+					}
+
+					@Override
+					public void mouseExited(MouseEvent e) {
+
+					}
+				});
 			}
 			
 			item.setOpaque(false);
 			item.setContentAreaFilled(false);
-			item.getModel().addChangeListener(new ChangeListener() {
-			    @Override
-			    public void stateChanged(ChangeEvent e) {
-			        ButtonModel model = (ButtonModel) e.getSource();
-			        if (model.isSelected()) 
-			        	item.setBorder(BorderFactory.createLineBorder(new Color(163, 38, 61), 3));
-			        else 
-			        	item.setBorder(BorderFactory.createLineBorder(new Color(122, 138, 153), 1));
-			    }
-			});
 			
 			item.setBackground(new Color(0, 0, 0, 0));
 			tabPanel.add(item);
@@ -136,18 +170,16 @@ public class CustomizationMenu extends JTabbedPane {
 		tabButton.setTextColorOnHover(new Color(163, 38, 61));
 		tabButton.setPreferredSize(new Dimension(70, 35));
 		tabButton.setFont(new Font("Arial", Font.PLAIN, 14));
-		tabButton.addActionListener( new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-            	setSelectedIndex(index);
-            }
-        });
+		tabButton.addActionListener(e -> {
+			setSelectedIndex(index);
+			selectedTab = tabButton;
+		});
 		setTabComponentAt(index, tabButton);
 	}
 	
-	private ImageIcon loadImageIcon(String path) {
+	private BufferedImage loadIcon(String path) {
 		try {
-			BufferedImage cat = ImageIO.read(new File(path));
-			return new ImageIcon(cat.getScaledInstance(50, 50, BufferedImage.SCALE_SMOOTH));
+			return ImageIO.read(new File(path));
 		}
 		catch(IOException e) {
 			return null;

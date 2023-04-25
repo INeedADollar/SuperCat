@@ -1,4 +1,4 @@
-package org.pjc;
+package org.pjc.entities;
 
 public class GameObject {
 	private GameObjectTypes type;

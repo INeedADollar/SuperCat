@@ -1,4 +1,4 @@
-package org.pjc;
+package org.pjc.displays;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -14,6 +14,7 @@ import javax.swing.table.TableCellRenderer;
 
 import javazoom.jl.decoder.JavaLayerException;
 import javazoom.jl.player.advanced.AdvancedPlayer;
+import org.pjc.widgets.CatButton;
 
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.JTableHeader;
@@ -33,7 +34,7 @@ import java.awt.Component;
 public class Leaderboard extends Display {
 
 	public Leaderboard(JFrame parent) {
-		super(parent, "assets/background.png");
+		super(parent, "assets/backgrounds/universe_background.png");
 		createUI();
 	}
 	

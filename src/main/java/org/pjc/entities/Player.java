@@ -1,4 +1,4 @@
-package org.pjc;
+package org.pjc.entities;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -10,9 +10,6 @@ import javax.imageio.ImageIO;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.awt.Dimension;
-import java.awt.Point;
 
 public class Player {
 	private String playerName = "";

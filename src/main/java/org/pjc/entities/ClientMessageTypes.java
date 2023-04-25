@@ -1,4 +1,4 @@
-package org.pjc;
+package org.pjc.entities;
 
 public enum ClientMessageTypes {
 	CLIENT_REFUSED_CONNECTION,

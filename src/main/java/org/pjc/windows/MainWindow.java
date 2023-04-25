@@ -1,4 +1,6 @@
-package org.pjc;
+package org.pjc.windows;
+
+import org.pjc.displays.Leaderboard;
 
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;

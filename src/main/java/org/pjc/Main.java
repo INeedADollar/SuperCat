@@ -1,5 +1,7 @@
 package org.pjc;
 
+import org.pjc.windows.MainWindow;
+
 import java.awt.EventQueue;
 
 public class Main {

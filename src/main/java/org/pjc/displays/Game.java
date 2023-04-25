@@ -1,4 +1,4 @@
-package org.pjc;
+package org.pjc.displays;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -8,10 +8,8 @@ import java.awt.Font;
 import java.awt.GridBagLayout;
 import java.awt.Image;
 import java.awt.Graphics;
-import java.awt.event.KeyListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 
 import java.io.BufferedReader;
@@ -30,7 +28,6 @@ import java.util.TimerTask;
 
 import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
-import javax.swing.Action;
 import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -50,6 +47,8 @@ import javax.swing.table.TableCellRenderer;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.pjc.entities.*;
+import org.pjc.widgets.CatButton;
 
 public class Game extends Display {
 	private Socket socket;

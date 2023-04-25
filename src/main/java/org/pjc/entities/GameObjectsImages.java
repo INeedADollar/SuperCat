@@ -1,4 +1,4 @@
-package org.pjc;
+package org.pjc.entities;
 
 import java.awt.image.BufferedImage;
 import java.io.File;

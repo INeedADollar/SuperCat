@@ -1,4 +1,4 @@
-package org.pjc;
+package org.pjc.entities;
 
 public enum GameObjectTypes {
 	OBJECT_PINK_STAR,

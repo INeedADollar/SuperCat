@@ -1,16 +1,14 @@
-package org.pjc;
+package org.pjc.displays;
 
 import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 
 import javazoom.jl.decoder.JavaLayerException;
 import javazoom.jl.player.advanced.AdvancedPlayer;
+import org.pjc.widgets.CatButton;
 
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -25,7 +23,7 @@ import java.awt.GridBagConstraints;
 public class MainMenu extends Display {
 
 	public MainMenu(JFrame parent) {
-		super(parent, "assets/background.png");
+		super(parent, "assets/backgrounds/space_background.png");
 		createUI();
 	}
 	
@@ -146,6 +144,7 @@ public class MainMenu extends Display {
     			
             	parent.setVisible(false);
             	parent.dispose();
+				System.exit(0);
             }
         });
 		gbc.gridx = 0;

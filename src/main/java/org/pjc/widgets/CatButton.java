@@ -1,4 +1,4 @@
-package org.pjc;
+package org.pjc.widgets;
 
 import javax.swing.JButton;
 
@@ -140,10 +140,6 @@ public class CatButton extends JButton {
         Polygon p = new Polygon();
         
         Dimension d = getPreferredSize();
-		System.out.println(d.height);
-		System.out.println(d.width);
-		System.out.println(getText());
-		System.out.println();
         if(isBackground) {
 	        p.addPoint(borderSize - 1, borderSize - 1);
 	        p.addPoint(borderSize - 1, d.height - borderSize);

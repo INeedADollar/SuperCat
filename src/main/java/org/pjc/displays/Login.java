@@ -1,16 +1,12 @@
-package org.pjc;
+package org.pjc.displays;
 
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.SwingConstants;
+import javax.swing.*;
 
 import javazoom.jl.decoder.JavaLayerException;
 import javazoom.jl.player.advanced.AdvancedPlayer;
+import org.pjc.widgets.CatButton;
+import org.pjc.widgets.CustomizationMenu;
+import org.pjc.widgets.LineEdit;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -27,6 +23,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -36,7 +33,7 @@ public class Login extends Display {
 	JLabel catLabel;
 
 	public Login(JFrame parent) {
-		super(parent, "assets/background.png");
+		super(parent, "assets/backgrounds/universe_background.png");
 		createUI();
 	}
 	
@@ -61,9 +58,15 @@ public class Login extends Display {
 		
 		JPanel catCustomization = new JPanel();
 		catCustomization.setLayout(new BorderLayout(10, 10));
-		catCustomization.setOpaque(false);;
+		catCustomization.setOpaque(false);
 		catCustomization.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
-		catCustomization.add(new CustomizationMenu(), BorderLayout.CENTER);
+
+		CustomizationMenu customizationMenu = new CustomizationMenu((tabName, icon) -> {
+			if(Objects.equals(tabName, "Cats")) {
+				catLabel.setIcon(icon);
+			}
+		});
+		catCustomization.add(customizationMenu, BorderLayout.CENTER);
 		firstHalf.add(catCustomization);
 		
 		add(firstHalf);

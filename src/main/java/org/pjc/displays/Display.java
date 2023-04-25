@@ -1,4 +1,4 @@
-package org.pjc;
+package org.pjc.displays;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;

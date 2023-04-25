@@ -1,4 +1,4 @@
-package org.pjc;
+package org.pjc.widgets;
 
 import javax.swing.JTextField;
 import javax.swing.text.Document;
