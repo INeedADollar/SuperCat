@@ -12,16 +12,14 @@ import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 public class CustomizationMenu extends JTabbedPane {
 	
 	private CatButton selectedTab = null;
 	private SkinChangeEventHandler eventHandler;
-	private Map<String, List<Icon>> icons = new HashMap<>();
+	private Map<String, List<BufferedImage>> itemsIcons = new HashMap<>();
 
 	private String tabs[] = {"Cats", "Head", "Clothing", "Paw"};
 	
@@ -31,12 +29,16 @@ public class CustomizationMenu extends JTabbedPane {
 		this.eventHandler = eventHandler;
 
 		for(int i = 0; i < 4; i++) {
-			icons.put(tabs[i], new ArrayList<>());
+			itemsIcons.put(tabs[i], new ArrayList<>());
 		}
 
 		createCustomizationMenu();
 	}
-	
+
+	public BufferedImage getDefaultCatSkin() {
+		return itemsIcons.get("Cats").get(0);
+	}
+
 	private void createCustomizationMenu() {
 		setOpaque(false);
 		setTabPlacement(JTabbedPane.BOTTOM);
@@ -102,19 +104,18 @@ public class CustomizationMenu extends JTabbedPane {
 		
 		for(int i = 0; i < 30; i++) {
 			JToggleButton item;
-			if(fileIndex < files.length) {
-				BufferedImage icon = loadIcon(directory.listFiles()[fileIndex].getPath());
-				ImageIcon smallScaledIcon = new ImageIcon(icon.getScaledInstance(50, 50, BufferedImage.SCALE_SMOOTH));
-				ImageIcon scaledIcon = new ImageIcon(icon.getScaledInstance(200, 200, BufferedImage.SCALE_SMOOTH));
+			if(fileIndex < files.length && i > 0) {
+				BufferedImage itemBuffImage = loadIcon(directory.listFiles()[fileIndex].getPath());
+				List<BufferedImage> tabIcons = itemsIcons.get(tabs[index]);
+				tabIcons.add(itemBuffImage);
 
-				List<Icon> tabIcons = icons.get(tabs[index]);
-				tabIcons.add(scaledIcon);
+				BufferedImage previewBuffImage = loadIcon(directory.listFiles()[fileIndex + 1].getPath());
+				ImageIcon previewIcon = new ImageIcon(previewBuffImage.getScaledInstance(50, 50, BufferedImage.SCALE_SMOOTH));
 
-				item = new JToggleButton(smallScaledIcon);
+				item = new JToggleButton(previewIcon);
 				item.setFocusPainted(false);
-				fileIndex++;
+				fileIndex += 2;
 
-				int finalI = i;
 				item.getModel().addChangeListener(e -> {
 					ButtonModel model = (ButtonModel) e.getSource();
 					if (model.isSelected())
@@ -122,37 +123,44 @@ public class CustomizationMenu extends JTabbedPane {
 					else
 						item.setBorder(BorderFactory.createLineBorder(new Color(122, 138, 153), 1));
 
-					eventHandler.handleEvent(selectedTab.getText(), icons.get(selectedTab.getText()).get(finalI));
+					eventHandler.handleEvent(selectedTab.getText(), itemBuffImage);
 				});
+
+				if(Objects.equals(tabs[index], "Cats") && i == 1) {
+					setSelectedComponent(item);
+				}
 			}
 			else {
 				item = new JToggleButton();
-				item.addMouseListener(new MouseListener() {
-					@Override
-					public void mouseClicked(MouseEvent e) {
-						e.consume();
-					}
 
-					@Override
-					public void mousePressed(MouseEvent e) {
-						e.consume();
-					}
+				if(i > 0) {
+					item.addMouseListener(new MouseListener() {
+						@Override
+						public void mouseClicked(MouseEvent e) {
+							e.consume();
+						}
 
-					@Override
-					public void mouseReleased(MouseEvent e) {
-						e.consume();
-					}
+						@Override
+						public void mousePressed(MouseEvent e) {
+							e.consume();
+						}
 
-					@Override
-					public void mouseEntered(MouseEvent e) {
-						e.consume();
-					}
+						@Override
+						public void mouseReleased(MouseEvent e) {
+							e.consume();
+						}
 
-					@Override
-					public void mouseExited(MouseEvent e) {
+						@Override
+						public void mouseEntered(MouseEvent e) {
+							e.consume();
+						}
 
-					}
-				});
+						@Override
+						public void mouseExited(MouseEvent e) {
+
+						}
+					});
+				}
 			}
 			
 			item.setOpaque(false);

@@ -8,12 +8,8 @@ import org.pjc.widgets.CatButton;
 import org.pjc.widgets.CustomizationMenu;
 import org.pjc.widgets.LineEdit;
 
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.GridLayout;
+import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.awt.BorderLayout;
 import java.awt.event.KeyListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -23,17 +19,19 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Objects;
+import java.util.*;
 import java.util.Timer;
-import java.util.TimerTask;
 
 import javax.imageio.ImageIO;
 
 public class Login extends Display {
-	JLabel catLabel;
+	private JLabel catLabel;
+	private final Map<String, BufferedImage> skinComponents;
 
 	public Login(JFrame parent) {
 		super(parent, "assets/backgrounds/universe_background.png");
+		this.skinComponents = new HashMap<>();
+
 		createUI();
 	}
 	
@@ -47,11 +45,18 @@ public class Login extends Display {
 		JPanel catPreview = new JPanel();
 		catPreview.setLayout(new BorderLayout());
 		catPreview.setOpaque(false);;
-		ImageIcon catImage = loadCatModel("assets/cats/cat.png");
-		if(catImage == null) 
-			throw new RuntimeException("Cat model could not be loaded.");
-		
-		catLabel = new JLabel(catImage);
+
+		CustomizationMenu customizationMenu = new CustomizationMenu((tabName, icon) -> {
+			skinComponents.put(tabName, icon);
+
+			ImageIcon newCatSkin = createCatSkin();
+			catLabel.setIcon(newCatSkin);
+		});
+		BufferedImage defaultCat = customizationMenu.getDefaultCatSkin();
+		skinComponents.put("Cats", defaultCat);
+
+		ImageIcon catIcon = new ImageIcon(defaultCat.getScaledInstance(200, 200, BufferedImage.SCALE_SMOOTH));
+		catLabel = new JLabel(catIcon);
 		catLabel.setOpaque(false);;
 		catPreview.add(catLabel, BorderLayout.CENTER);
 		firstHalf.add(catPreview);
@@ -61,11 +66,6 @@ public class Login extends Display {
 		catCustomization.setOpaque(false);
 		catCustomization.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
 
-		CustomizationMenu customizationMenu = new CustomizationMenu((tabName, icon) -> {
-			if(Objects.equals(tabName, "Cats")) {
-				catLabel.setIcon(icon);
-			}
-		});
 		catCustomization.add(customizationMenu, BorderLayout.CENTER);
 		firstHalf.add(catCustomization);
 		
@@ -77,16 +77,6 @@ public class Login extends Display {
 		
 		add(login);
 		setBackground(Color.black);
-	}
-	
-	private ImageIcon loadCatModel(String path) {
-		try {
-			BufferedImage cat = ImageIO.read(new File(path));
-			return new ImageIcon(cat.getScaledInstance(200, 200, BufferedImage.SCALE_SMOOTH));
-		}
-		catch(IOException e) {
-			return null;
-		}
 	}
 	
 	private JPanel createLoginMenu() {
@@ -203,5 +193,21 @@ public class Login extends Display {
 		loginMenu.add(buttons, BorderLayout.SOUTH);
 		
 		return loginMenu;
+	}
+
+	private ImageIcon createCatSkin() {
+		BufferedImage cat = skinComponents.get("Cats");
+		BufferedImage catSkin = new BufferedImage(cat.getWidth(), cat.getHeight(), cat.getType());
+
+		Graphics2D g = (Graphics2D)catSkin.getGraphics();
+		for(String key : skinComponents.keySet()) {
+			BufferedImage component = skinComponents.get(key);
+
+			if(component != null) {
+				g.drawImage(component, 0, 0, null);
+			}
+		}
+
+		return new ImageIcon();
 	}
 }
