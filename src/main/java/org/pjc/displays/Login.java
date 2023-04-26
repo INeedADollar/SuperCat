@@ -29,7 +29,7 @@ public class Login extends Display {
 	private final Map<String, BufferedImage> skinComponents;
 
 	public Login(JFrame parent) {
-		super(parent, "assets/backgrounds/universe_background.png");
+		super(parent, "assets/backgrounds/universe_background_small.png");
 		this.skinComponents = new HashMap<>();
 
 		createUI();
@@ -49,7 +49,7 @@ public class Login extends Display {
 		CustomizationMenu customizationMenu = new CustomizationMenu((tabName, icon) -> {
 			skinComponents.put(tabName, icon);
 
-			ImageIcon newCatSkin = createCatSkin();
+			ImageIcon newCatSkin = new ImageIcon(createCatSkin().getScaledInstance(200, 200, BufferedImage.SCALE_SMOOTH));
 			catLabel.setIcon(newCatSkin);
 		});
 		BufferedImage defaultCat = customizationMenu.getDefaultCatSkin();
@@ -68,7 +68,7 @@ public class Login extends Display {
 
 		catCustomization.add(customizationMenu, BorderLayout.CENTER);
 		firstHalf.add(catCustomization);
-		
+
 		add(firstHalf);
 		
 		JPanel login = createLoginMenu();
@@ -151,7 +151,7 @@ public class Login extends Display {
             	
     			(new Timer()).schedule(task, 0);
     			
-            	Game gameDisplay = new Game(usernameField.getText(), new BufferedImage(1, 1, 1), parent);
+            	Game gameDisplay = new Game(usernameField.getText(), createCatSkin(), parent);
             	gameDisplay.showDisplay();
             }
         });
@@ -195,7 +195,7 @@ public class Login extends Display {
 		return loginMenu;
 	}
 
-	private ImageIcon createCatSkin() {
+	private BufferedImage createCatSkin() {
 		BufferedImage cat = skinComponents.get("Cats");
 		BufferedImage catSkin = new BufferedImage(cat.getWidth(), cat.getHeight(), cat.getType());
 
@@ -208,6 +208,6 @@ public class Login extends Display {
 			}
 		}
 
-		return new ImageIcon();
+		return catSkin;
 	}
 }

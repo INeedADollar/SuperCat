@@ -104,17 +104,25 @@ public class CustomizationMenu extends JTabbedPane {
 		
 		for(int i = 0; i < 30; i++) {
 			JToggleButton item;
-			if(fileIndex < files.length && i > 0) {
+			if(fileIndex < files.length) {
 				BufferedImage itemBuffImage = loadIcon(directory.listFiles()[fileIndex].getPath());
 				List<BufferedImage> tabIcons = itemsIcons.get(tabs[index]);
 				tabIcons.add(itemBuffImage);
 
-				BufferedImage previewBuffImage = loadIcon(directory.listFiles()[fileIndex + 1].getPath());
+				BufferedImage previewBuffImage;
+				if(index == 0) {
+					previewBuffImage = itemBuffImage;
+				}
+				else {
+					previewBuffImage = loadIcon(directory.listFiles()[fileIndex + 1].getPath());
+				}
+
 				ImageIcon previewIcon = new ImageIcon(previewBuffImage.getScaledInstance(50, 50, BufferedImage.SCALE_SMOOTH));
 
 				item = new JToggleButton(previewIcon);
 				item.setFocusPainted(false);
-				fileIndex += 2;
+
+				fileIndex += index == 0 ? 1 : 2;
 
 				item.getModel().addChangeListener(e -> {
 					ButtonModel model = (ButtonModel) e.getSource();
@@ -125,10 +133,6 @@ public class CustomizationMenu extends JTabbedPane {
 
 					eventHandler.handleEvent(selectedTab.getText(), itemBuffImage);
 				});
-
-				if(Objects.equals(tabs[index], "Cats") && i == 1) {
-					setSelectedComponent(item);
-				}
 			}
 			else {
 				item = new JToggleButton();
@@ -166,9 +170,13 @@ public class CustomizationMenu extends JTabbedPane {
 			item.setOpaque(false);
 			item.setContentAreaFilled(false);
 			
-			item.setBackground(new Color(0, 0, 0, 0));
+			item.setBackground(new Color(0, 0, 0, 255));
 			tabPanel.add(item);
 			buttonGroup.add(item);
+
+//			if(Objects.equals(tabs[index], "Cats") && i == 1) {
+//				setSelectedComponent(item);
+//			}
 		}
 		
 		addTab(tabs[index], tabPanel);

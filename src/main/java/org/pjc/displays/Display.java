@@ -11,6 +11,7 @@ import java.awt.GraphicsDevice;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Objects;
 
 import javax.imageio.ImageIO;
 
@@ -37,14 +38,14 @@ public abstract class Display extends JPanel {
 	}
 	
 	private void loadBackgroundImage(String backgroundImagePath) {
-		if(backgroundImagePath == "")
+		if(Objects.equals(backgroundImagePath, ""))
 			return;
 		
 		try {
 			BufferedImage cat = ImageIO.read(new File(backgroundImagePath));
 			
 			int[] displaySize = getDisplaySize();
-			this.backgroundImage = (Image)cat.getScaledInstance(displaySize[0], displaySize[1], Image.SCALE_SMOOTH);
+			this.backgroundImage = cat.getScaledInstance(displaySize[0], displaySize[1], BufferedImage.SCALE_SMOOTH);
 			
 		}
 		catch(IOException e) {

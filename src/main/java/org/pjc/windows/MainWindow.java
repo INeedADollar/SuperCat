@@ -1,6 +1,8 @@
 package org.pjc.windows;
 
+import org.pjc.displays.Game;
 import org.pjc.displays.Leaderboard;
+import org.pjc.displays.MainMenu;
 
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
@@ -31,10 +33,9 @@ public class MainWindow extends JFrame {
 //		l.showDisplay();
 		
 		//(new Login(this)).showDisplay();
-		//(new MainMenu(this)).showDisplay();
-		(new Leaderboard(this)).showDisplay();
+		(new MainMenu(this)).showDisplay();
+		//(new Leaderboard(this)).showDisplay();
 		//(new Game("", new BufferedImage(1, 1, 1), this)).showDisplay();
-		
 	}
 	
 	private BufferedImage loadIcon(String path) {

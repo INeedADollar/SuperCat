@@ -1,30 +1,16 @@
 package org.pjc.displays;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.GridBagLayout;
-import java.awt.Image;
-import java.awt.Graphics;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 
 import java.net.Socket;
 
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
-import java.util.Random;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
@@ -48,6 +34,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.pjc.entities.*;
+import org.pjc.utills.GameThread;
 import org.pjc.widgets.CatButton;
 
 public class Game extends Display {
@@ -59,6 +46,7 @@ public class Game extends Display {
 	private Timer scheduler;
 	private TimerTask timerTask;
 	private GameObjectsImages objectsImages;
+	private  BufferedImage world;
 
 	private List<Player> players;
 	private List<List<GameObject>> objects;
@@ -73,22 +61,35 @@ public class Game extends Display {
 	private JTable leaderboard;
 	
 	public Game(String playerName, BufferedImage playerCat, JFrame parent) {
-		super(parent, "assets/background1.png");
+		super(parent, "assets/backgrounds/universe_background_small.png");
 		this.scheduler = new Timer();
 		this.loadingText = new JLabel("Connecting to server...");
-		
+		add(loadingText);
+
 		this.players = new ArrayList<>();
 		this.objects = new ArrayList<>();
-		
+
 		for(int i = 0; i < 10; i++)
 			objects.add(new ArrayList<GameObject>());
-		
+
 		setLayout(new GridBagLayout());
-		setupKeyListener();
 		createPlayer(playerName, playerCat);
-		connectToServer();
 	}
-	
+
+	@Override
+	public void showDisplay() {
+		super.showDisplay();
+		System.out.println("HERE SHOW");
+		setupKeyListener();
+
+		GameThread thread = new GameThread(this::connectToServer);
+		thread.addListener(t -> {
+			loadingText.setVisible(false);
+			System.out.println("EHE");
+		});
+		thread.start();
+	}
+
 	private void createEscMenu() {
 		this.escMenu = new ArrayList<>();
 		
@@ -103,7 +104,7 @@ public class Game extends Display {
 		resumeButton.setBorderColorOnHover(new Color(163, 38, 61));
 		resumeButton.setTextColor(new Color(163, 38, 61));
 		resumeButton.setTextColorOnHover(new Color(163, 38, 61));
-		resumeButton.resize(new Dimension(300, 120));
+		resumeButton.setPreferredSize(new Dimension(300, 120));
 		resumeButton.setFont(new Font("Arial", Font.PLAIN, 30));
 		resumeButton.addActionListener( new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -121,7 +122,7 @@ public class Game extends Display {
 		mainMenuButton.setBorderColorOnHover(new Color(163, 38, 61));
 		mainMenuButton.setTextColor(new Color(163, 38, 61));
 		mainMenuButton.setTextColorOnHover(new Color(163, 38, 61));
-		mainMenuButton.resize(new Dimension(300, 120));
+		mainMenuButton.setPreferredSize(new Dimension(300, 120));
 		mainMenuButton.setFont(new Font("Arial", Font.PLAIN, 30));
 		mainMenuButton.addActionListener( new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -153,7 +154,7 @@ public class Game extends Display {
 		playAgainButton.setBorderColorOnHover(new Color(163, 38, 61));
 		playAgainButton.setTextColor(new Color(163, 38, 61));
 		playAgainButton.setTextColorOnHover(new Color(163, 38, 61));
-		playAgainButton.resize(new Dimension(300, 120));
+		playAgainButton.setPreferredSize(new Dimension(300, 120));
 		playAgainButton.setFont(new Font("Arial", Font.PLAIN, 30));
 		playAgainButton.addActionListener( new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -416,14 +417,17 @@ public class Game extends Display {
 		loadingText.setFont(new Font("SansSerif", Font.BOLD, 100));
 		loadingText.setFocusable(false);
 		add(loadingText);
-		
+
+		this.objectsImages = new GameObjectsImages();
+
 		try {
 			this.socket = new Socket("0.0.0.0", 1201);
 			this.input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			this.output = new PrintWriter(socket.getOutputStream(), true);
 			
 			sendPlayerData();
-			
+			loadingText.setText("Loading game data...");
+
 			this.timerTask = new TimerTask() {
 				@Override
 				public void run() {
@@ -433,8 +437,6 @@ public class Game extends Display {
 			};
 				
 			scheduler.schedule(timerTask, 10, 10);
-			this.objectsImages = new GameObjectsImages();
-			loadingText.setText("Loading game data...");
 		}
 		catch(IOException e) {
 			System.out.println(e);
@@ -453,8 +455,7 @@ public class Game extends Display {
 		try {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 	        ImageIO.write(player.getPlayerCat(), "png", baos);
-	        byte[] bytes = baos.toByteArray();
-			message.put("playerCat", new String(bytes));
+			message.put("playerCat", baos.toString());
 		}
 		catch(IOException e) {
 			System.out.println(e);
@@ -688,7 +689,12 @@ public class Game extends Display {
 	
 	private void startWorldRendering() {
 		gameDataLoaded = true;
-		
+		try {
+			world = ImageIO.read(new File("assets/backgrounds/space_background.png"));
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
@@ -696,11 +702,27 @@ public class Game extends Display {
 			}			
 		});
 
-		createEscMenu();
-		createDieMenu();
+		//createEscMenu();
+		//createDieMenu();
 		repaintGame();
 	}
-	
+
+	public static BufferedImage toBufferedImage(Image img)
+	{
+		if (img instanceof BufferedImage)
+		{
+			return (BufferedImage) img;
+		}
+
+		BufferedImage bimage = new BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+
+		Graphics2D bGr = bimage.createGraphics();
+		bGr.drawImage(img, 0, 0, null);
+		bGr.dispose();
+
+		return bimage;
+	}
+
 	private void movePlayer(JSONObject message) {
 		try {
 			String playerName = message.getString("playerName");
@@ -885,154 +907,55 @@ public class Game extends Display {
 	@Override
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
-		
-		if(!gameDataLoaded || objectsImages == null)
+
+		if(!gameDataLoaded || objectsImages == null) {
 			return;
-		
+		}
+
+		int[] playerPosition = players.get(0).getPlayerPosition();
 		int[] displaySize = getDisplaySize();
-		Player player = players.get(0);
-		int[] chunksToRender = getChunksToRender(player, displaySize);
-		
-		renderCurrentChunksObjects(g, player, displaySize, chunksToRender);
-		renderMainPlayer(g, player, displaySize, chunksToRender);
-		renderOtherPlayers(g, player, displaySize, chunksToRender);
-		System.out.println("HERE " + gameDataLoaded);
+		g.drawImage(world, playerPosition[0] / 1000, playerPosition[1] / 1000, displaySize[0], displaySize[1], null);
+	}
+
+	private void renderAllWorld() {
+		Graphics2D g = world.createGraphics();
+		renderGameObjects(g);
+		renderPlayers(g);
+
+		File outputfile = new File("image.jpg");
+		System.out.println(outputfile.getAbsoluteFile().getPath());
+		try {
+			ImageIO.write(world, "jpg", outputfile);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 	
-	private int[] getChunksToRender(Player player, int[] displaySize) {
-		int[] chunksToRender = new int[2];
-		
-		if(player.getPlayerPosition()[0] < displaySize[0] / 2) {
-			chunksToRender[0] = 0;
-			chunksToRender[1] = displaySize[0] / 1000;
-		}
-		else if(player.getPlayerPosition()[0] > 10000 - displaySize[0] / 2){
-			chunksToRender[0] = (10000 - displaySize[0]) / 1000;
-			chunksToRender[1] = 9;
-		}
-		else {
-			chunksToRender[0] = (player.getPlayerPosition()[0] - displaySize[0] / 2) / 1000;
-			chunksToRender[1] = (player.getPlayerPosition()[0] + displaySize[0] / 2 ) / 1000;
-		}
-		
-		return chunksToRender;
-	}
-	
-	private boolean isPlayerInMiddle(Player player, int[] displaySize) {
-		return !(player.getPlayerPosition()[0] < displaySize[0] / 2 ||
-				player.getPlayerPosition()[0] > 10000 - displaySize[0] / 2 ||
-				player.getPlayerPosition()[1] < displaySize[1] / 2 ||
-					player.getPlayerPosition()[1] > 10000 - displaySize[1] / 2);
-	}
-	
-	private int[] mapPositionToDisplay(int[] positionToMap, int[] displaySize, int[] currentChunks, Player player) {
-		int[] position = new int[2];
-		if(positionToMap[0] < currentChunks[0] * 1000 ||
-				positionToMap[0] > currentChunks[1] * 1000 ||
-					positionToMap[1] < 0 || positionToMap[1] > 10000) {
-			position[0] = -2000;
-			position[1] = -2000;
-		}
-		else {
-			int[] currentFrameStartingPoint = new int[2];
-			
-			if(isPlayerInMiddle(player, displaySize)) {
-				currentFrameStartingPoint[0] = player.getPlayerPosition()[0] - displaySize[0] / 2;
-				currentFrameStartingPoint[1] = player.getPlayerPosition()[1] - displaySize[1] / 2;
-			}
-			else {
-				if(currentChunks[0] == 0) {
-					currentFrameStartingPoint[0] = 0;
-					
-					if(positionToMap[1] > 10000 - displaySize[1] / 2)
-						currentFrameStartingPoint[1] = 10000 - displaySize[1];
-					else
-						currentFrameStartingPoint[1] = positionToMap[1];
-				}
-				else if(currentChunks[1] == 9) {
-					currentFrameStartingPoint[0] = 10000 - displaySize[0];
-					
-					if(positionToMap[1] > 10000 - displaySize[1] / 2)
-						currentFrameStartingPoint[1] = 10000 - displaySize[1];
-					else
-						currentFrameStartingPoint[1] = positionToMap[1];
-				}
-				else {
-					if(positionToMap[1] > 10000 - displaySize[1] / 2) {
-						currentFrameStartingPoint[0] = player.getPlayerPosition()[0] - displaySize[0] / 2;
-						currentFrameStartingPoint[1] = 10000 - displaySize[1];
-					}
-					else {
-						currentFrameStartingPoint[0] = player.getPlayerPosition()[0] - displaySize[0] / 2;
-						currentFrameStartingPoint[1] = 0;
-					}
-				}
-			}
-		}
-		
-		return position;
-	}
-	
-	private void renderCurrentChunksObjects(Graphics g, Player player, int[] displaySize, int[] chunksToRender) {
-		int[] objRenderPosition;
-		
-		for(int i = chunksToRender[0]; i <= chunksToRender[1]; i++) {
+	private void renderGameObjects(Graphics g) {
+		for(int i = 0; i < objects.size(); i++) {
 			List<GameObject> chunkObjects = objects.get(i);
 			for(GameObject obj : chunkObjects) {
+				System.out.println(obj.getType());
+				System.out.println(Arrays.toString(obj.getPosition()));
 				Image objImg = objectsImages.getObjectImage(obj.getType())
 						.getScaledInstance(obj.getSize()[0], obj.getSize()[1], Image.SCALE_SMOOTH);
-				
-				objRenderPosition = mapPositionToDisplay(obj.getPosition(), displaySize, chunksToRender, player);
-				g.drawImage(objImg, objRenderPosition[0], objRenderPosition[1], obj.getSize()[0], 
+
+				g.drawImage(objImg, obj.getPosition()[0], obj.getPosition()[0], obj.getSize()[0],
 						obj.getSize()[1], null);
 			}
 		}
 	}
 	
-	private void renderMainPlayer(Graphics g, Player player, int[] displaySize, int[] currentChunks) {
-		int[] renderPosition = new int[2];
-		
-		if(player.getPlayerPosition()[0] < displaySize[0] / 2 ||
-				player.getPlayerPosition()[0] > 10000 - displaySize[0] / 2 ||
-					player.getPlayerPosition()[1] < displaySize[1] / 2 ||
-						player.getPlayerPosition()[1] > 10000 - displaySize[1] / 2) {
-			renderPosition = mapPositionToDisplay(player.getPlayerPosition(), displaySize, currentChunks, player);
-		}
-		else {
-			renderPosition[0] = (displaySize[0] - player.getPlayerSize()[0]) / 2;
-			renderPosition[1] = (displaySize[1] - player.getPlayerSize()[1]) / 2;
-		}
-		
-		Image playerCat = player.getPlayerCat().getScaledInstance(player.getPlayerSize()[0],
-				player.getPlayerSize()[1], Image.SCALE_SMOOTH);
-		g.drawImage(playerCat, renderPosition[0], renderPosition[1], 
-				player.getPlayerSize()[0], player.getPlayerSize()[1], null);
-	}
-	
-	private void renderOtherPlayers(Graphics g, Player player, int[] displaySize, int[] currentChunks) {
-		int[] chunksToRender = getChunksToRender(player, displaySize);
-		
-		for(Player play : players) {
-			if(play.equals(player))
-				continue;
-			
-			if(player.getPlayerSize()[0] >= chunksToRender[0] * 1000 &&
-					player.getPlayerSize()[0] <= chunksToRender[1] * 1000) {
-				Image playerCat = play.getPlayerCat().getScaledInstance(play.getPlayerSize()[0],
-						play.getPlayerSize()[1], Image.SCALE_SMOOTH);
-				int[] positionToRender = mapPositionToDisplay(play.getPlayerPosition(), displaySize, currentChunks, player);
-				g.drawImage(playerCat, positionToRender[0], positionToRender[1],
-						play.getPlayerSize()[0], play.getPlayerSize()[1], null);
-			}
+	private void renderPlayers(Graphics g) {
+		for(Player player : players) {
+			Image playerCat = player.getPlayerCat().getScaledInstance(player.getPlayerSize()[0],
+					player.getPlayerSize()[1], Image.SCALE_SMOOTH);
+			g.drawImage(playerCat, player.getPlayerPosition()[0], player.getPlayerPosition()[1],
+					player.getPlayerSize()[0], player.getPlayerSize()[1], null);
 		}
 	}
 	
 	private void repaintGame() {
-		SwingUtilities.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				revalidate();
-			}			
-		});
+		SwingUtilities.invokeLater(this::revalidate);
 	}
 }

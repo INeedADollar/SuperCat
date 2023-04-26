@@ -34,7 +34,7 @@ import java.awt.Component;
 public class Leaderboard extends Display {
 
 	public Leaderboard(JFrame parent) {
-		super(parent, "assets/backgrounds/universe_background.png");
+		super(parent, "assets/backgrounds/universe_background_small.png");
 		createUI();
 	}
 	
