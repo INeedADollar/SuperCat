@@ -64,6 +64,7 @@ public class Game extends Display {
 		super(parent, "assets/backgrounds/universe_background_small.png");
 		this.scheduler = new Timer();
 		this.loadingText = new JLabel("Connecting to server...");
+		add(loadingText);
 
 		this.players = new ArrayList<>();
 		this.objects = new ArrayList<>();
@@ -78,7 +79,8 @@ public class Game extends Display {
 	@Override
 	public void showDisplay() {
 		super.showDisplay();
-		add(loadingText);
+		validate();
+
 		System.out.println("HERE SHOW");
 		setupKeyListener();
 
@@ -333,6 +335,8 @@ public class Game extends Display {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				Player player = players.get(0);
+				player.setPlayerPosition(new int[]{player.getPlayerPosition()[0], player.getPlayerPosition()[1] - 5});
+
 				JSONObject message = new JSONObject();
 				message.put("type", ClientMessageTypes.CLIENT_PLAYER_POSITION_UPDATE.ordinal());
 				message.put("playerName", player.getPlayerName());
@@ -343,6 +347,7 @@ public class Game extends Display {
 				message.put("playerPosition", arr);
 				
 				sendMessage(message);
+				repaintGame();
 			}
 			
 		});
@@ -352,6 +357,8 @@ public class Game extends Display {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				Player player = players.get(0);
+				player.setPlayerPosition(new int[]{player.getPlayerPosition()[0], player.getPlayerPosition()[1] + 5});
+
 				JSONObject message = new JSONObject();
 				message.put("type", ClientMessageTypes.CLIENT_PLAYER_POSITION_UPDATE.ordinal());
 				message.put("playerName", player.getPlayerName());
@@ -362,6 +369,7 @@ public class Game extends Display {
 				message.put("playerPosition", arr);
 				
 				sendMessage(message);
+				repaintGame();
 			}
 			
 		});
@@ -371,6 +379,8 @@ public class Game extends Display {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				Player player = players.get(0);
+				player.setPlayerPosition(new int[]{player.getPlayerPosition()[0] - 5, player.getPlayerPosition()[1]});
+
 				JSONObject message = new JSONObject();
 				message.put("type", ClientMessageTypes.CLIENT_PLAYER_POSITION_UPDATE.ordinal());
 				message.put("playerName", player.getPlayerName());
@@ -381,6 +391,7 @@ public class Game extends Display {
 				message.put("playerPosition", arr);
 				
 				sendMessage(message);
+				repaintGame();
 			}
 			
 		});
@@ -390,6 +401,8 @@ public class Game extends Display {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				Player player = players.get(0);
+				player.setPlayerPosition(new int[]{player.getPlayerPosition()[0] + 5, player.getPlayerPosition()[1]});
+
 				JSONObject message = new JSONObject();
 				message.put("type", ClientMessageTypes.CLIENT_PLAYER_POSITION_UPDATE.ordinal());
 				message.put("playerName", player.getPlayerName());
@@ -400,6 +413,7 @@ public class Game extends Display {
 				message.put("playerPosition", arr);
 				
 				sendMessage(message);
+				repaintGame(); // sa incercam cu repaint
 			}
 			
 		});
@@ -463,7 +477,7 @@ public class Game extends Display {
 		try {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 	        ImageIO.write(player.getPlayerCat(), "png", baos);
-			message.put("playerCat", Base64.getEncoder().encode(baos.toByteArray()));
+			message.put("playerCat", Base64.getEncoder().encodeToString(baos.toByteArray()));
 		}
 		catch(IOException e) {
 			System.out.println(e);
@@ -688,7 +702,9 @@ public class Game extends Display {
 	private void startWorldRendering() {
 		gameDataLoaded = true;
 		try {
-			world = ImageIO.read(new File("assets/backgrounds/space_background.png"));
+			world = ImageIO.read(new File("assets/backgrounds/universe_background.png"));
+			Graphics g = world.getGraphics();
+			renderGameObjects(g);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -899,17 +915,18 @@ public class Game extends Display {
 	
 	@Override
 	public void paintComponent(Graphics g) {
-		super.paintComponent(g);
-
 		if(!gameDataLoaded || objectsImages == null) {
+			super.paintComponent(g);
 			return;
 		}
 
 		int[] playerPosition = players.get(0).getPlayerPosition();
 		int[] displaySize = getDisplaySize();
-		g.drawImage(world, playerPosition[0] / 1000, playerPosition[1] / 1000, displaySize[0], displaySize[1], null);
+		BufferedImage imageToDraw = world.getSubimage(playerPosition[0] / 1000, playerPosition[1] / 1000, displaySize[0], displaySize[1]);
+		g.drawImage(imageToDraw, 0, 0, displaySize[0], displaySize[1], null);
+		renderPlayers(g);
 
-		//renderPlayers(g);
+		System.out.println("RENDER");
 	}
 
 	private void renderAllWorld() {
@@ -929,8 +946,6 @@ public class Game extends Display {
 	private void renderGameObjects(Graphics g) {
 		for (List<GameObject> chunkObjects : objects) {
 			for (GameObject obj : chunkObjects) {
-				System.out.println(obj.getType());
-				System.out.println(Arrays.toString(obj.getPosition()));
 				Image objImg = objectsImages.getObjectImage(obj.getType())
 						.getScaledInstance(obj.getSize()[0], obj.getSize()[1], Image.SCALE_SMOOTH);
 
@@ -938,6 +953,8 @@ public class Game extends Display {
 						obj.getSize()[1], null);
 			}
 		}
+
+		System.out.println("GATA");
 	}
 	
 	private void renderPlayers(Graphics g) {
@@ -949,8 +966,9 @@ public class Game extends Display {
 			int[] playerPos = player.getPlayerPosition();
 			int[] playerSize = player.getPlayerSize();
 			if(player == currentPlayer) {
+				System.out.println("MAța");
 				int[] displaySize = getDisplaySize();
-				playerPos = new int[]{(displaySize[0] - playerPos[0]) / 2, (displaySize[1] - playerPos[1]) / 2};
+				playerPos = new int[]{(displaySize[0] - playerSize[0]) / 2, (displaySize[1] - playerSize[1]) / 2};
 			}
 
 			g.drawImage(playerCat, playerPos[0], playerPos[1],
@@ -959,6 +977,7 @@ public class Game extends Display {
 	}
 	
 	private void repaintGame() {
-		SwingUtilities.invokeLater(this::revalidate);
+		revalidate();
+		repaint();
 	}
 }

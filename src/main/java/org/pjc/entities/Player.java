@@ -1,9 +1,11 @@
 package org.pjc.entities;
 
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Base64;
 
 import javax.imageio.ImageIO;
 
@@ -72,7 +74,6 @@ public class Player {
 	private void setPlayerInfo(JSONObject info) throws JSONException {
 		try {
 			this.playerName = info.getString("playerName");
-			this.playerCat = bytesToBufferedImage(info.getString("playerCat").getBytes());
 			
 			JSONArray size = info.getJSONArray("playerSize");
 			this.playerSize = new int[]{size.getInt(0), size.getInt(1)};
@@ -81,6 +82,8 @@ public class Player {
 			this.playerPosition = new int[]{position.getInt(0), position.getInt(1)};
 			
 			this.playerScore = info.getInt("playerScore");
+			byte[] imageData = Base64.getDecoder().decode(info.getString("playerCat"));
+			this.playerCat = bytesToBufferedImage(imageData);
 		}
 		catch(IOException e) {
 			System.out.println(e);
@@ -90,8 +93,14 @@ public class Player {
 	
 	private BufferedImage bytesToBufferedImage(byte[] data) throws IOException {
 		InputStream is = new ByteArrayInputStream(data);
-        BufferedImage bi = ImageIO.read(is);
-        return bi;
+		Image scaled = ImageIO.read(is).getScaledInstance(playerSize[0], playerSize[1], Image.SCALE_SMOOTH);
+
+		int width = scaled.getWidth(null);
+		int height = scaled.getHeight(null);
+		BufferedImage playerImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+		playerImage.getGraphics().drawImage(scaled, 0, 0, width, height, null);
+
+		return playerImage;
 	}
 	
 	@Override
