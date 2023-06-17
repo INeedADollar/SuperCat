@@ -59,12 +59,15 @@ public class Game extends Display {
 	
 	private boolean gameDataLoaded = false;
 	private JTable leaderboard;
+
+	private boolean isMirrored = false;
 	
 	public Game(String playerName, BufferedImage playerCat, JFrame parent) {
 		super(parent, "assets/backgrounds/universe_background_small.png");
 		this.scheduler = new Timer();
 		this.loadingText = new JLabel("Connecting to server...");
 		add(loadingText);
+		loadingText.setVisible(true);
 
 		this.players = new ArrayList<>();
 		this.objects = new ArrayList<>();
@@ -86,7 +89,7 @@ public class Game extends Display {
 
 		GameThread thread = new GameThread(this::connectToServer);
 		thread.addListener(t -> {
-			if(!socket.isConnected()) {
+			if(socket == null) {
 				try {
 					Thread.sleep(3000);
 				} catch (InterruptedException e) {
@@ -347,7 +350,7 @@ public class Game extends Display {
 				message.put("playerPosition", arr);
 				
 				sendMessage(message);
-				repaintGame();
+				repaint();
 			}
 			
 		});
@@ -369,7 +372,7 @@ public class Game extends Display {
 				message.put("playerPosition", arr);
 				
 				sendMessage(message);
-				repaintGame();
+				repaint();
 			}
 			
 		});
@@ -389,9 +392,10 @@ public class Game extends Display {
 				arr.put(player.getPlayerPosition()[0] - 5);
 				arr.put(player.getPlayerPosition()[1]);
 				message.put("playerPosition", arr);
-				
+
+				isMirrored = true;
 				sendMessage(message);
-				repaintGame();
+				repaint();
 			}
 			
 		});
@@ -413,7 +417,8 @@ public class Game extends Display {
 				message.put("playerPosition", arr);
 				
 				sendMessage(message);
-				repaintGame(); // sa incercam cu repaint
+				isMirrored = false;
+				repaint();
 			}
 			
 		});
@@ -673,12 +678,12 @@ public class Game extends Display {
 							}
 						}
 					}
-					
+
 					System.out.println(objects.get(index).size());
 					index++;
 				}
 			}
-			
+
 			arr = message.getJSONArray("otherPlayers");
 			for(Object obj : arr) {
 				if(obj instanceof JSONObject) {
@@ -688,7 +693,7 @@ public class Game extends Display {
 					}
 				}
 			}
-			
+
 			startWorldRendering();
 		}
 		catch(JSONException e) {
@@ -921,8 +926,12 @@ public class Game extends Display {
 		}
 
 		int[] playerPosition = players.get(0).getPlayerPosition();
+		int[] playerSize = players.get(0).getPlayerSize();
 		int[] displaySize = getDisplaySize();
-		BufferedImage imageToDraw = world.getSubimage(playerPosition[0] / 1000, playerPosition[1] / 1000, displaySize[0], displaySize[1]);
+
+		int x = playerPosition[0] - ((displaySize[0] - playerSize[0]) / 2);
+		int y = playerPosition[1] - ((displaySize[1] - playerSize[1]) / 2);
+		BufferedImage imageToDraw = world.getSubimage(x, y, displaySize[0], displaySize[1]);
 		g.drawImage(imageToDraw, 0, 0, displaySize[0], displaySize[1], null);
 		renderPlayers(g);
 
@@ -949,7 +958,7 @@ public class Game extends Display {
 				Image objImg = objectsImages.getObjectImage(obj.getType())
 						.getScaledInstance(obj.getSize()[0], obj.getSize()[1], Image.SCALE_SMOOTH);
 
-				g.drawImage(objImg, obj.getPosition()[0], obj.getPosition()[0], obj.getSize()[0],
+				g.drawImage(objImg, obj.getPosition()[0], obj.getPosition()[1], obj.getSize()[0],
 						obj.getSize()[1], null);
 			}
 		}
@@ -971,8 +980,23 @@ public class Game extends Display {
 				playerPos = new int[]{(displaySize[0] - playerSize[0]) / 2, (displaySize[1] - playerSize[1]) / 2};
 			}
 
-			g.drawImage(playerCat, playerPos[0], playerPos[1],
-					playerSize[0], playerSize[1], null);
+			g.setColor(new Color(255, 0, 0));
+			g.drawString(player.getPlayerName(), playerPos[0] + 30, playerPos[1] - 10);
+
+			Image catImage = playerCat;
+			if(isMirrored) {
+				BufferedImage bi = new BufferedImage(playerCat.getWidth(null), playerCat.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+
+				Graphics2D g2d = bi.createGraphics();
+				g2d.translate(bi.getWidth(), 0);
+				g2d.scale(-1, 1);
+				g2d.drawImage(playerCat, 0, 0, null);
+
+				g2d.dispose();
+				catImage = bi;
+			}
+
+			g.drawImage(catImage, playerPos[0], playerPos[1], null);
 		}
 	}
 	
