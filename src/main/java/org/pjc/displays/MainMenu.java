@@ -69,7 +69,8 @@ public class MainMenu extends Display {
     			};
             	
     			(new Timer()).schedule(task, 0);
-    			
+
+				setVisible(false);
             	Login loginDisplay = new Login(parent);
             	loginDisplay.showDisplay();
             }

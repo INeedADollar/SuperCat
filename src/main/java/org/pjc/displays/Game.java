@@ -64,13 +64,12 @@ public class Game extends Display {
 		super(parent, "assets/backgrounds/universe_background_small.png");
 		this.scheduler = new Timer();
 		this.loadingText = new JLabel("Connecting to server...");
-		add(loadingText);
 
 		this.players = new ArrayList<>();
 		this.objects = new ArrayList<>();
 
 		for(int i = 0; i < 10; i++)
-			objects.add(new ArrayList<GameObject>());
+			objects.add(new ArrayList<>());
 
 		setLayout(new GridBagLayout());
 		createPlayer(playerName, playerCat);
@@ -79,13 +78,22 @@ public class Game extends Display {
 	@Override
 	public void showDisplay() {
 		super.showDisplay();
+		add(loadingText);
 		System.out.println("HERE SHOW");
 		setupKeyListener();
 
 		GameThread thread = new GameThread(this::connectToServer);
 		thread.addListener(t -> {
-			loadingText.setVisible(false);
-			System.out.println("EHE");
+			if(!socket.isConnected()) {
+				try {
+					Thread.sleep(3000);
+				} catch (InterruptedException e) {
+					throw new RuntimeException(e);
+				}
+				MainMenu mainMenu = new MainMenu(parent);
+				mainMenu.showDisplay();
+				System.out.println("EHE");
+			}
 		});
 		thread.start();
 	}
@@ -455,7 +463,7 @@ public class Game extends Display {
 		try {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 	        ImageIO.write(player.getPlayerCat(), "png", baos);
-			message.put("playerCat", baos.toString());
+			message.put("playerCat", Base64.getEncoder().encode(baos.toByteArray()));
 		}
 		catch(IOException e) {
 			System.out.println(e);
@@ -633,16 +641,6 @@ public class Game extends Display {
 			timerTask.cancel();
 		
 		loadingText.setText(text);
-		
-		TimerTask task = new TimerTask() {
-			@Override
-			public void run() {
-				MainMenu display = new MainMenu(parent);
-	        	display.showDisplay();
-			}	
-		};
-	
-		scheduler.schedule(task, 3000);
 	}
 	
 	private void loadGameData(JSONObject message) {
@@ -695,12 +693,7 @@ public class Game extends Display {
 			throw new RuntimeException(e);
 		}
 
-		SwingUtilities.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				loadingText.setVisible(false);
-			}			
-		});
+		loadingText.setVisible(false);
 
 		//createEscMenu();
 		//createDieMenu();
@@ -915,6 +908,8 @@ public class Game extends Display {
 		int[] playerPosition = players.get(0).getPlayerPosition();
 		int[] displaySize = getDisplaySize();
 		g.drawImage(world, playerPosition[0] / 1000, playerPosition[1] / 1000, displaySize[0], displaySize[1], null);
+
+		//renderPlayers(g);
 	}
 
 	private void renderAllWorld() {
@@ -932,9 +927,8 @@ public class Game extends Display {
 	}
 	
 	private void renderGameObjects(Graphics g) {
-		for(int i = 0; i < objects.size(); i++) {
-			List<GameObject> chunkObjects = objects.get(i);
-			for(GameObject obj : chunkObjects) {
+		for (List<GameObject> chunkObjects : objects) {
+			for (GameObject obj : chunkObjects) {
 				System.out.println(obj.getType());
 				System.out.println(Arrays.toString(obj.getPosition()));
 				Image objImg = objectsImages.getObjectImage(obj.getType())
@@ -947,11 +941,20 @@ public class Game extends Display {
 	}
 	
 	private void renderPlayers(Graphics g) {
+		Player currentPlayer = players.get(0);
 		for(Player player : players) {
 			Image playerCat = player.getPlayerCat().getScaledInstance(player.getPlayerSize()[0],
 					player.getPlayerSize()[1], Image.SCALE_SMOOTH);
-			g.drawImage(playerCat, player.getPlayerPosition()[0], player.getPlayerPosition()[1],
-					player.getPlayerSize()[0], player.getPlayerSize()[1], null);
+
+			int[] playerPos = player.getPlayerPosition();
+			int[] playerSize = player.getPlayerSize();
+			if(player == currentPlayer) {
+				int[] displaySize = getDisplaySize();
+				playerPos = new int[]{(displaySize[0] - playerPos[0]) / 2, (displaySize[1] - playerPos[1]) / 2};
+			}
+
+			g.drawImage(playerCat, playerPos[0], playerPos[1],
+					playerSize[0], playerSize[1], null);
 		}
 	}
 	

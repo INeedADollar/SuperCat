@@ -150,7 +150,8 @@ public class Login extends Display {
     			};
             	
     			(new Timer()).schedule(task, 0);
-    			
+
+				setVisible(false);
             	Game gameDisplay = new Game(usernameField.getText(), createCatSkin(), parent);
             	gameDisplay.showDisplay();
             }
