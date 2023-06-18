@@ -3,6 +3,7 @@ package org.pjc.displays;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 
 import java.io.*;
@@ -11,25 +12,16 @@ import java.net.Socket;
 
 import java.util.*;
 import java.util.List;
+import java.util.Timer;
 
 import javax.imageio.ImageIO;
-import javax.swing.AbstractAction;
-import javax.swing.ActionMap;
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.InputMap;
-import javax.swing.JComponent;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.KeyStroke;
-import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
 
+import javazoom.jl.decoder.JavaLayerException;
+import javazoom.jl.player.advanced.AdvancedPlayer;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -49,10 +41,10 @@ public class Game extends Display {
 	private  BufferedImage world;
 
 	private List<Player> players;
-	private List<List<GameObject>> objects;
+	private List<GameObject> objects;
 	
 	private boolean isEscMenuShowed = false;
-	private List<JComponent> escMenu;
+	private JPanel escMenu;
 	
 	private boolean isDieMenuShowed = false;
 	private List<JComponent> dieMenu;
@@ -65,24 +57,22 @@ public class Game extends Display {
 	public Game(String playerName, BufferedImage playerCat, JFrame parent) {
 		super(parent, "assets/backgrounds/universe_background_small.png");
 		this.scheduler = new Timer();
-		this.loadingText = new JLabel("Connecting to server...");
-		add(loadingText);
-		loadingText.setVisible(true);
+		this.loadingText = new JLabel("Connecting to server...", SwingConstants.CENTER);
 
 		this.players = new ArrayList<>();
 		this.objects = new ArrayList<>();
 
-		for(int i = 0; i < 10; i++)
-			objects.add(new ArrayList<>());
+		setLayout(new BorderLayout());
+		add(loadingText, BorderLayout.CENTER);
+		//loadingText.setVisible(true);
 
-		setLayout(new GridBagLayout());
 		createPlayer(playerName, playerCat);
+		loadWorldImage();
 	}
 
 	@Override
 	public void showDisplay() {
 		super.showDisplay();
-		validate();
 
 		System.out.println("HERE SHOW");
 		setupKeyListener();
@@ -104,12 +94,26 @@ public class Game extends Display {
 	}
 
 	private void createEscMenu() {
-		this.escMenu = new ArrayList<>();
-		
-		loadingText.setText("SuperCat");
-		loadingText.setVisible(false);
-		escMenu.add(loadingText);
-		
+		this.escMenu = new JPanel();
+		escMenu.setBackground(new Color(0, 0, 0, 128));
+		escMenu.setLayout(new GridBagLayout());
+		escMenu.setVisible(false);
+		add(escMenu);
+
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.gridx = 0;
+		gbc.gridy = 0;
+		gbc.insets = new Insets(20, 0, 100, 0);
+
+		JLabel label = new JLabel("SuperCat");
+		label.setFont(new Font("SansSerif", Font.ITALIC | Font.BOLD, 100));
+		label.setForeground(new Color(163, 38, 61));
+		escMenu.add(label, gbc);
+
+		gbc.gridx = 0;
+		gbc.gridy = 1;
+		gbc.insets = new Insets(15, 0, 15, 0);
+
 		CatButton resumeButton = new CatButton("Resume");
 		resumeButton.setAlignmentX(CENTER_ALIGNMENT);
 		resumeButton.setBorderSize(3);
@@ -117,17 +121,32 @@ public class Game extends Display {
 		resumeButton.setBorderColorOnHover(new Color(163, 38, 61));
 		resumeButton.setTextColor(new Color(163, 38, 61));
 		resumeButton.setTextColorOnHover(new Color(163, 38, 61));
-		resumeButton.setPreferredSize(new Dimension(300, 120));
+		resumeButton.setPreferredSize(new Dimension(300, 100));
 		resumeButton.setFont(new Font("Arial", Font.PLAIN, 30));
-		resumeButton.addActionListener( new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-            	hideEscMenu();
-            }
-        });
-		add(resumeButton);
-		resumeButton.setVisible(false);
-		escMenu.add(resumeButton);
-		
+		resumeButton.addActionListener(e -> {
+			hideEscMenu();
+			TimerTask task = new TimerTask() {
+				@Override
+				public void run() {
+				try {
+					FileInputStream fis = new FileInputStream("sounds/cat.mp3");
+					AdvancedPlayer player = new AdvancedPlayer(fis);
+					player.play();
+
+				} catch (FileNotFoundException | JavaLayerException e1) {
+					System.out.println(e1);
+					e1.printStackTrace();
+				}
+				}
+			};
+
+			(new Timer()).schedule(task, 0);
+		});
+		escMenu.add(resumeButton, gbc);
+
+		gbc.gridx = 0;
+		gbc.gridy = 2;
+
 		CatButton mainMenuButton = new CatButton("Exit to main menu");
 		mainMenuButton.setAlignmentX(CENTER_ALIGNMENT);
 		mainMenuButton.setBorderSize(3);
@@ -135,22 +154,35 @@ public class Game extends Display {
 		mainMenuButton.setBorderColorOnHover(new Color(163, 38, 61));
 		mainMenuButton.setTextColor(new Color(163, 38, 61));
 		mainMenuButton.setTextColorOnHover(new Color(163, 38, 61));
-		mainMenuButton.setPreferredSize(new Dimension(300, 120));
+		mainMenuButton.setPreferredSize(new Dimension(300, 100));
 		mainMenuButton.setFont(new Font("Arial", Font.PLAIN, 30));
-		mainMenuButton.addActionListener( new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-            	JSONObject message = new JSONObject();
-            	message.put("type", ClientMessageTypes.CLIENT_DISCONNECTED.ordinal());
-            	message.put("playerName", players.get(0).getPlayerName());
-            	sendMessage(message);
-            	
-            	MainMenu display = new MainMenu(parent);
-            	display.showDisplay();
-            }
-        });
-		add(mainMenuButton);
-		mainMenuButton.setVisible(false);
-		escMenu.add(mainMenuButton);
+		mainMenuButton.addActionListener(e -> {
+			JSONObject message = new JSONObject();
+			message.put("type", ClientMessageTypes.CLIENT_DISCONNECTED.ordinal());
+			message.put("playerName", players.get(0).getPlayerName());
+			sendMessage(message);
+
+			TimerTask task = new TimerTask() {
+				@Override
+				public void run() {
+				try {
+					FileInputStream fis = new FileInputStream("sounds/cat.mp3");
+					AdvancedPlayer player = new AdvancedPlayer(fis);
+					player.play();
+
+				} catch (FileNotFoundException | JavaLayerException e1) {
+					System.out.println(e1);
+					e1.printStackTrace();
+				}
+				}
+			};
+
+			(new Timer()).schedule(task, 0);
+
+			MainMenu display = new MainMenu(parent);
+			display.showDisplay();
+		});
+		escMenu.add(mainMenuButton, gbc);
 	}
 	
 	private void createDieMenu() {
@@ -318,17 +350,22 @@ public class Game extends Display {
 		InputMap inMap = getInputMap();
 		ActionMap acMap = getActionMap();
 		
-		inMap.put(KeyStroke.getKeyStroke("ESC"), "escMenu");
-		inMap.put(KeyStroke.getKeyStroke("UP"), "moveUp");
-		inMap.put(KeyStroke.getKeyStroke("DOWN"), "moveDown");
-		inMap.put(KeyStroke.getKeyStroke("LEFT"), "moveLeft");
-		inMap.put(KeyStroke.getKeyStroke("RIGHT"), "moveRight");
+		inMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "escMenu");
+		inMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), "moveUp");
+		inMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), "moveDown");
+		inMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), "moveLeft");
+		inMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), "moveRight");
 		
 		acMap.put("escMenu", new AbstractAction() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				showEscMenu();
+				if(!isEscMenuShowed) {
+					showEscMenu();
+				}
+				else {
+					hideEscMenu();
+				}
 			}
 			
 		});
@@ -338,19 +375,24 @@ public class Game extends Display {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				Player player = players.get(0);
-				player.setPlayerPosition(new int[]{player.getPlayerPosition()[0], player.getPlayerPosition()[1] - 5});
+				int[] playerPosition = player.getPlayerPosition();
+				int newY = playerPosition[1] - 10;
 
-				JSONObject message = new JSONObject();
-				message.put("type", ClientMessageTypes.CLIENT_PLAYER_POSITION_UPDATE.ordinal());
-				message.put("playerName", player.getPlayerName());
-				
-				JSONArray arr = new JSONArray();
-				arr.put(player.getPlayerPosition()[0]);
-				arr.put(player.getPlayerPosition()[1] - 5);
-				message.put("playerPosition", arr);
-				
-				sendMessage(message);
-				repaint();
+				if(newY >= 0) {
+					player.setPlayerPosition(new int[]{player.getPlayerPosition()[0], newY});
+
+					JSONObject message = new JSONObject();
+					message.put("type", ClientMessageTypes.CLIENT_PLAYER_POSITION_UPDATE.ordinal());
+					message.put("playerName", player.getPlayerName());
+
+					JSONArray arr = new JSONArray();
+					arr.put(player.getPlayerPosition()[0]);
+					arr.put(newY);
+					message.put("playerPosition", arr);
+
+					sendMessage(message);
+					repaint();
+				}
 			}
 			
 		});
@@ -360,19 +402,25 @@ public class Game extends Display {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				Player player = players.get(0);
-				player.setPlayerPosition(new int[]{player.getPlayerPosition()[0], player.getPlayerPosition()[1] + 5});
+				int[] playerPosition = player.getPlayerPosition();
+				int[] playerSize = player.getPlayerSize();
+				int newY = playerPosition[1] + 10;
 
-				JSONObject message = new JSONObject();
-				message.put("type", ClientMessageTypes.CLIENT_PLAYER_POSITION_UPDATE.ordinal());
-				message.put("playerName", player.getPlayerName());
-				
-				JSONArray arr = new JSONArray();
-				arr.put(player.getPlayerPosition()[0]);
-				arr.put(player.getPlayerPosition()[1] + 5);
-				message.put("playerPosition", arr);
-				
-				sendMessage(message);
-				repaint();
+				if(newY + playerSize[1] <= 10000) {
+					player.setPlayerPosition(new int[]{player.getPlayerPosition()[0], newY});
+
+					JSONObject message = new JSONObject();
+					message.put("type", ClientMessageTypes.CLIENT_PLAYER_POSITION_UPDATE.ordinal());
+					message.put("playerName", player.getPlayerName());
+
+					JSONArray arr = new JSONArray();
+					arr.put(player.getPlayerPosition()[0]);
+					arr.put(newY);
+					message.put("playerPosition", arr);
+
+					sendMessage(message);
+					repaint();
+				}
 			}
 			
 		});
@@ -382,20 +430,25 @@ public class Game extends Display {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				Player player = players.get(0);
-				player.setPlayerPosition(new int[]{player.getPlayerPosition()[0] - 5, player.getPlayerPosition()[1]});
+				int[] playerPosition = player.getPlayerPosition();
+				int newX = playerPosition[0] - 10;
 
-				JSONObject message = new JSONObject();
-				message.put("type", ClientMessageTypes.CLIENT_PLAYER_POSITION_UPDATE.ordinal());
-				message.put("playerName", player.getPlayerName());
-				
-				JSONArray arr = new JSONArray();
-				arr.put(player.getPlayerPosition()[0] - 5);
-				arr.put(player.getPlayerPosition()[1]);
-				message.put("playerPosition", arr);
+				if(newX >= 0) {
+					player.setPlayerPosition(new int[]{newX, player.getPlayerPosition()[1]});
 
-				isMirrored = true;
-				sendMessage(message);
-				repaint();
+					JSONObject message = new JSONObject();
+					message.put("type", ClientMessageTypes.CLIENT_PLAYER_POSITION_UPDATE.ordinal());
+					message.put("playerName", player.getPlayerName());
+
+					JSONArray arr = new JSONArray();
+					arr.put(newX);
+					arr.put(player.getPlayerPosition()[1]);
+					message.put("playerPosition", arr);
+
+					isMirrored = true;
+					sendMessage(message);
+					repaint();
+				}
 			}
 			
 		});
@@ -405,20 +458,26 @@ public class Game extends Display {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				Player player = players.get(0);
-				player.setPlayerPosition(new int[]{player.getPlayerPosition()[0] + 5, player.getPlayerPosition()[1]});
+				int[] playerPosition = player.getPlayerPosition();
+				int[] playerSize = player.getPlayerSize();
+				int newX = playerPosition[0] + 10;
 
-				JSONObject message = new JSONObject();
-				message.put("type", ClientMessageTypes.CLIENT_PLAYER_POSITION_UPDATE.ordinal());
-				message.put("playerName", player.getPlayerName());
-				
-				JSONArray arr = new JSONArray();
-				arr.put(player.getPlayerPosition()[0] + 5);
-				arr.put(player.getPlayerPosition()[1]);
-				message.put("playerPosition", arr);
-				
-				sendMessage(message);
-				isMirrored = false;
-				repaint();
+				if(newX + playerSize[0] <= 10000) {
+					player.setPlayerPosition(new int[]{newX, player.getPlayerPosition()[1]});
+
+					JSONObject message = new JSONObject();
+					message.put("type", ClientMessageTypes.CLIENT_PLAYER_POSITION_UPDATE.ordinal());
+					message.put("playerName", player.getPlayerName());
+
+					JSONArray arr = new JSONArray();
+					arr.put(newX);
+					arr.put(player.getPlayerPosition()[1]);
+					message.put("playerPosition", arr);
+
+					sendMessage(message);
+					isMirrored = false;
+					repaint();
+				}
 			}
 			
 		});
@@ -665,23 +724,19 @@ public class Game extends Display {
 	private void loadGameData(JSONObject message) {
 		try {
 			System.out.println(message);
+			Graphics g = world.getGraphics();
 			JSONArray arr = message.getJSONArray("worldObjects");
-			int index = 0;
 			
-			for(Object chunkList : arr) {
-				if(chunkList instanceof JSONArray) {
-					for(Object obj : (JSONArray)chunkList) {
-						if(obj instanceof JSONObject) {
-							GameObject gameObj = getGameObjectFromJson((JSONObject)obj);
-							if(gameObj != null) {
-								objects.get(index).add(gameObj);
-							}
-						}
-					}
+			for(Object obj : arr) {
+                if(obj instanceof JSONObject) {
+                    GameObject gameObj = getGameObjectFromJson((JSONObject)obj);
+                    if(gameObj != null) {
+						Image objImg = objectsImages.getObjectImage(gameObj.getType());
 
-					System.out.println(objects.get(index).size());
-					index++;
-				}
+						g.drawImage(objImg, gameObj.getPosition()[0], gameObj.getPosition()[1], gameObj.getSize()[0],
+								gameObj.getSize()[1], null);
+                    }
+                }
 			}
 
 			arr = message.getJSONArray("otherPlayers");
@@ -694,7 +749,13 @@ public class Game extends Display {
 				}
 			}
 
-			startWorldRendering();
+			gameDataLoaded = true;
+			loadingText.setVisible(false);
+			requestFocus();
+
+			createEscMenu();
+			//createDieMenu();
+			repaintGame();
 		}
 		catch(JSONException e) {
 			System.out.println(e);
@@ -704,21 +765,12 @@ public class Game extends Display {
 		}
 	}
 	
-	private void startWorldRendering() {
-		gameDataLoaded = true;
+	private void loadWorldImage() {
 		try {
 			world = ImageIO.read(new File("assets/backgrounds/universe_background.png"));
-			Graphics g = world.getGraphics();
-			renderGameObjects(g);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
-
-		loadingText.setVisible(false);
-
-		//createEscMenu();
-		//createDieMenu();
-		repaintGame();
 	}
 
 	public static BufferedImage toBufferedImage(Image img)
@@ -835,20 +887,19 @@ public class Game extends Display {
 	}
 	
 	private void showEscMenu() {
-		if(escMenu != null) {
+		System.out.println("HER");
+		if(escMenu != null && !isEscMenuShowed) {
+			System.out.println("HER");
 			isEscMenuShowed = true;
-			for(JComponent comp : escMenu) {
-				comp.setVisible(true);
-			}
+			escMenu.setVisible(true);
+			validate();
 		}
 	}
 	
 	private void hideEscMenu() {
-		if(escMenu != null) {
+		if(escMenu != null && isEscMenuShowed) {
 			isEscMenuShowed = false;
-			for(JComponent comp : escMenu) {
-				comp.setVisible(false);
-			}
+			escMenu.setVisible(false);
 		}
 	}
 	
@@ -874,8 +925,7 @@ public class Game extends Display {
 		try {
 			GameObject gameObj = getGameObjectFromJson(message.getJSONObject("eatenObject"));
 			if(gameObj != null) {
-				int chunk = gameObj.getPosition()[0] / 1000;
-				objects.get(chunk).remove(gameObj);
+				objects.remove(gameObj);
 				repaintGame();
 			}
 		}
@@ -889,8 +939,7 @@ public class Game extends Display {
 		try {
 			GameObject gameObj = getGameObjectFromJson(message.getJSONObject("newObject"));
 			if(gameObj != null) {
-				int chunk = gameObj.getPosition()[0] / 1000;
-				objects.get(chunk).add(gameObj);
+				objects.add(gameObj);
 				repaintGame();
 			}
 		}
@@ -917,7 +966,33 @@ public class Game extends Display {
 			e.printStackTrace();
 		}
 	}
-	
+
+	private BufferedImage getGameBackground(int[] displaySize) {
+		int[] playerPosition = players.get(0).getPlayerPosition();
+		int[] playerSize = players.get(0).getPlayerSize();
+
+		int x = playerPosition[0] - ((displaySize[0] - playerSize[0]) / 2);
+		int y = playerPosition[1] - ((displaySize[1] - playerSize[1]) / 2);
+
+		if(x < 0){
+			x = 0;
+		}
+
+		if(x + displaySize[0] > 10000) {
+			x = 10000 - displaySize[0];
+		}
+
+		if(y < 0) {
+			y = 0;
+		}
+
+		if(y + displaySize[1] > 10000) {
+			y = 10000 - displaySize[1];
+		}
+
+		return world.getSubimage(x, y, displaySize[0], displaySize[1]);
+	}
+
 	@Override
 	public void paintComponent(Graphics g) {
 		if(!gameDataLoaded || objectsImages == null) {
@@ -925,13 +1000,8 @@ public class Game extends Display {
 			return;
 		}
 
-		int[] playerPosition = players.get(0).getPlayerPosition();
-		int[] playerSize = players.get(0).getPlayerSize();
 		int[] displaySize = getDisplaySize();
-
-		int x = playerPosition[0] - ((displaySize[0] - playerSize[0]) / 2);
-		int y = playerPosition[1] - ((displaySize[1] - playerSize[1]) / 2);
-		BufferedImage imageToDraw = world.getSubimage(x, y, displaySize[0], displaySize[1]);
+		BufferedImage imageToDraw = getGameBackground(displaySize);
 		g.drawImage(imageToDraw, 0, 0, displaySize[0], displaySize[1], null);
 		renderPlayers(g);
 
@@ -953,14 +1023,12 @@ public class Game extends Display {
 	}
 	
 	private void renderGameObjects(Graphics g) {
-		for (List<GameObject> chunkObjects : objects) {
-			for (GameObject obj : chunkObjects) {
-				Image objImg = objectsImages.getObjectImage(obj.getType())
-						.getScaledInstance(obj.getSize()[0], obj.getSize()[1], Image.SCALE_SMOOTH);
+		for (GameObject obj : objects) {
+            Image objImg = objectsImages.getObjectImage(obj.getType())
+                    .getScaledInstance(obj.getSize()[0], obj.getSize()[1], Image.SCALE_SMOOTH);
 
-				g.drawImage(objImg, obj.getPosition()[0], obj.getPosition()[1], obj.getSize()[0],
-						obj.getSize()[1], null);
-			}
+            g.drawImage(objImg, obj.getPosition()[0], obj.getPosition()[1], obj.getSize()[0],
+                    obj.getSize()[1], null);
 		}
 
 		System.out.println("GATA");
@@ -977,7 +1045,7 @@ public class Game extends Display {
 			if(player == currentPlayer) {
 				System.out.println("MAța");
 				int[] displaySize = getDisplaySize();
-				playerPos = new int[]{(displaySize[0] - playerSize[0]) / 2, (displaySize[1] - playerSize[1]) / 2};
+				playerPos = new int[]{(displaySize[0] - playerSize[0]) / 4, (displaySize[1] - playerSize[1]) / 4};
 			}
 
 			g.setColor(new Color(255, 0, 0));
@@ -996,6 +1064,7 @@ public class Game extends Display {
 				catImage = bi;
 			}
 
+			System.out.println(playerPos[0]);
 			g.drawImage(catImage, playerPos[0], playerPos[1], null);
 		}
 	}

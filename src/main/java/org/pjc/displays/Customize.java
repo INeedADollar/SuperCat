@@ -15,20 +15,16 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.*;
 import java.util.Timer;
 
-import javax.imageio.ImageIO;
-
-public class Login extends Display {
+public class Customize extends Display {
 	private JLabel catLabel;
 	private final Map<String, BufferedImage> skinComponents;
 
-	public Login(JFrame parent) {
+	public Customize(JFrame parent) {
 		super(parent, "assets/backgrounds/universe_background_small.png");
 		this.skinComponents = new HashMap<>();
 
@@ -71,7 +67,7 @@ public class Login extends Display {
 
 		add(firstHalf);
 		
-		JPanel login = createLoginMenu();
+		JPanel login = createCustomizationMenu();
 		login.setBorder(BorderFactory.createEmptyBorder(30, 30, 10, 30));
 		login.setOpaque(false);
 		
@@ -79,11 +75,11 @@ public class Login extends Display {
 		setBackground(Color.black);
 	}
 	
-	private JPanel createLoginMenu() {
+	private JPanel createCustomizationMenu() {
 		JPanel loginMenu = new JPanel();
 		loginMenu.setLayout(new BoxLayout(loginMenu, BoxLayout.Y_AXIS));
 		
-		JLabel loginLabel = new JLabel("LOGIN", SwingConstants.CENTER);
+		JLabel loginLabel = new JLabel("CUSTOMIZE", SwingConstants.CENTER);
 		loginLabel.setFont(new Font("SansSerif", Font.ITALIC | Font.BOLD, 50));
 		loginLabel.setForeground(new Color(163, 38, 61));
 		loginMenu.add(loginLabel);

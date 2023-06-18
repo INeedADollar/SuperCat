@@ -71,8 +71,8 @@ public class MainMenu extends Display {
     			(new Timer()).schedule(task, 0);
 
 				setVisible(false);
-            	Login loginDisplay = new Login(parent);
-            	loginDisplay.showDisplay();
+            	Customize customizeDisplay = new Customize(parent);
+            	customizeDisplay.showDisplay();
             }
         });
 
@@ -133,19 +133,19 @@ public class MainMenu extends Display {
     						FileInputStream fis = new FileInputStream("sounds/cat.mp3");
     						AdvancedPlayer player = new AdvancedPlayer(fis);
     						player.play();
-    						
+
     					} catch (FileNotFoundException | JavaLayerException e1) {
     						System.out.println(e1);
     						e1.printStackTrace();
     					}
+
+						parent.setVisible(false);
+						parent.dispose();
+						System.exit(0);
     				}
     			};
             	
     			(new Timer()).schedule(task, 0);
-    			
-            	parent.setVisible(false);
-            	parent.dispose();
-				System.exit(0);
             }
         });
 		gbc.gridx = 0;
