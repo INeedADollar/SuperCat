@@ -1045,7 +1045,7 @@ public class Game extends Display {
 			if(player == currentPlayer) {
 				System.out.println("MAța");
 				int[] displaySize = getDisplaySize();
-				playerPos = new int[]{(displaySize[0] - playerSize[0]) / 4, (displaySize[1] - playerSize[1]) / 4};
+				playerPos = new int[]{(displaySize[0] - playerSize[0]) / 3, (displaySize[1] - playerSize[1]) / 3};
 			}
 
 			g.setColor(new Color(255, 0, 0));
